@@ -8,7 +8,8 @@ import { clamp, round } from './text';
  */
 export function matchProjects(analysis: JobAnalysis, projects: PortfolioProject[]): ProjectMatch[] {
   const relevant = analysis.keywords.filter((k) => k.term.dungHas);
-  const maxWeight = relevant.reduce((s, k) => s + keywordWeight(k), 0);
+  // denominator = ALL detected tech, so out-of-scope stacks (Unity, PHP…) cap the match
+  const maxWeight = analysis.keywords.reduce((s, k) => s + keywordWeight(k), 0);
 
   const matches = projects.map<ProjectMatch>((project) => {
     const kwSet = new Set(project.keywords);

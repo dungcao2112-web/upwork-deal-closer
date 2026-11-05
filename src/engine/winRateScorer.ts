@@ -48,7 +48,7 @@ export function reuseCoverage(a: JobAnalysis, matches: ProjectMatch[]): number {
   const top = matches.slice(0, 2).map((m) => new Set(m.project.keywords));
   const relevant = a.keywords.filter((k) => k.term.dungHas);
   if (!relevant.length) return 0;
-  const total = relevant.reduce((s, k) => s + keywordWeight(k), 0);
+  const total = a.keywords.reduce((s, k) => s + keywordWeight(k), 0); // out-of-scope tech is never reusable
   const covered = relevant
     .filter((k) => top.some((t) => t.has(k.term.id)))
     .reduce((s, k) => s + keywordWeight(k), 0);
@@ -118,6 +118,13 @@ export function scoreClient(job: JobInput, a: JobAnalysis): Part {
   return { score: clamp(round(s), 0, 100), why: `${c.country || 'N/A'} · ${notes.join(' · ') || 'hồ sơ khách trung bình'}.` };
 }
 
+/** Share (by weight) of detected tech that Dũng has not shipped. */
+export function outOfScopeShare(a: JobAnalysis): number {
+  const total = a.keywords.reduce((s, k) => s + keywordWeight(k), 0);
+  if (!total) return 0;
+  return a.keywords.filter((k) => !k.term.dungHas).reduce((s, k) => s + keywordWeight(k), 0) / total;
+}
+
 export function verdictFor(total: number): { verdict: Verdict; vi: string } {
   if (total >= 75) return { verdict: 'MUST-BID', vi: 'BẮT BUỘC NỘP — tỷ lệ thắng rất cao, cân nhắc Boost nếu còn ít proposal.' };
   if (total >= 58) return { verdict: 'STRONG', vi: 'NÊN NỘP — có lợi thế rõ, quay Loom demo để tách khỏi đám đông.' };
@@ -142,6 +149,8 @@ export function scoreWinRate(job: JobInput, a: JobAnalysis, matches: ProjectMatc
   // hard caps for deal-breakers
   if (a.redFlags.some((f) => f.id === 'payment-unverified')) total = Math.min(total, 60);
   if (a.redFlags.some((f) => f.id === 'off-platform' || f.id === 'bypass')) total -= 8;
+  // mostly out-of-scope stack (Unity, PHP, native mobile…) → never worth the Connects
+  if (outOfScopeShare(a) > 0.5) total = Math.min(total, 35);
   total = clamp(round(total), 3, 97);
   const v = verdictFor(total);
   return { total, dimensions, verdict: v.verdict, verdictVi: v.vi, reuseMultiplier: reuse.multiplier };

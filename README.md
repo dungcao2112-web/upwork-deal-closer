@@ -10,6 +10,8 @@ Anh dán JD Upwork vào (hoặc chọn 1 trong 8 Job mẫu). Ngay lập tức, *
 4. Tính **3 mức giá bid**, trừ 10% phí Upwork, ra **Net USD/VNĐ**, **$/giờ thực làm**, và chia **Milestones** cộng đúng 100%.
 5. Sinh **chuỗi Boolean Search** cho 5 ngách, kèm Title/Overview/Skills cho Specialized Profile.
 6. Quản lý phễu bằng **Kanban CRM**, có thống kê, kéo-thả và Export/Import JSON/CSV.
+7. **🇻🇳 Dịch JD sang tiếng Việt**: tóm ý offline tức thì + bản dịch đầy đủ song ngữ (Google Dịch miễn phí, không cần key, có tự sửa thuật ngữ; hoặc qua LLM).
+8. **🛰️ Quét job hàng loạt**: dán cả trang kết quả tìm kiếm Upwork → tự tách từng job, chấm điểm, xếp hạng, lọc trùng với CRM.
 
 ---
 
@@ -28,10 +30,10 @@ Mở http://localhost:5173
 | Lệnh | Mục đích |
 |---|---|
 | `npm run dev` | Dev server (Vite) |
-| `npm test` | 180 test tự động (Vitest) |
+| `npm test` | 211 test tự động (Vitest) |
 | `npm run build` | Typecheck strict + build production vào `dist/` |
 | `npm run preview` | Xem bản build |
-| `node scripts/ui-check.cjs ./screenshots` | Kiểm tra UI thật bằng Playwright (39 bước, cần `npm run dev` chạy song song) |
+| `node scripts/ui-check.cjs ./screenshots` | Kiểm tra UI thật bằng Playwright (52 bước, cần `npm run dev` chạy song song) |
 
 ---
 
@@ -43,7 +45,11 @@ Mở http://localhost:5173
 4. **💰 Phân hệ 4 · Bid & Milestones.** Chọn mức giá → **Copy trọn bộ Milestones** hoặc copy từng dòng để dán vào form Upwork.
 5. **💾 Lưu vào Pipeline CRM** (nút trên header). Lưu trọn bộ Job, Win-Rate, dự án, proposal đang chọn, milestones, connects.
 6. **📋 Phân hệ 6 · Kanban.** Kéo-thả hoặc bấm ←/→ để chuyển giai đoạn. Bấm vào thẻ để ghi chú, chỉnh connects/giá. Export JSON/CSV để sao lưu.
-7. **📡 Phân hệ 5 · Niche Radar.** Mỗi sáng chọn ngách → tick từ khóa → **Mở trang tìm kiếm Upwork**.
+7. **📡 Niche Radar.** Mỗi sáng chọn ngách → tick từ khóa → **Mở trang tìm kiếm Upwork**.
+8. **🛰️ Job Scanner.** Trên trang kết quả Upwork nhấn `Ctrl+A` → `Ctrl+C`, dán vào máy quét → **Quét & chấm điểm**. Job tốt nhất nằm trên cùng. Bấm **Phân tích & soạn đơn** để nạp sang Phân hệ 1, **Lưu CRM**, hoặc **Bỏ qua**. Lọc theo Win-Rate tối thiểu, ẩn SKIP, chỉ Payment Verified, ẩn job đã có trong CRM. Cũng nhận nhiều JD cách nhau bằng `---` hoặc mảng JSON.
+9. **🇻🇳 Dịch JD.** Bấm **🇻🇳 Dịch JD** ở Phân hệ 1. Bên trái là tóm ý tiếng Việt (khách cần gì, ngân sách → thực nhận VNĐ, khách là ai, nỗi đau, công nghệ, cảnh báo, kết luận), không cần mạng. Bên phải là bản dịch đầy đủ song ngữ EN ↔ VI, tự lưu cache.
+
+> **Vì sao máy quét không tự vào Upwork lấy job?** Upwork đã tắt RSS từ 20/08/2024 và điều khoản cấm bot cào dữ liệu, nên tự cào có nguy cơ khóa tài khoản. Ứng dụng chỉ xử lý dữ liệu anh tự mở và copy. Quét tự động 100% chỉ an toàn qua **Upwork GraphQL API chính thức** (cần xin duyệt API key). Máy quét đã nhận sẵn đầu vào JSON để sau này nối API.
 
 Ô **Tìm nhanh** trên header tìm được Job mẫu, dự án, deal và phân hệ.
 
@@ -64,7 +70,7 @@ Trong Phân hệ 3 có thể nhập API key Claude / OpenAI / Gemini, hoặc tr�
 | Code Reuse & Speed | 15% | % phạm vi đã có module → **Reuse Multiplier 1x–5x** |
 | Client & Budget Health | 25% | Payment verified, tổng chi, hire rate, số proposals, ngân sách, red flags |
 
-Ràng buộc cứng: khách chưa verify thanh toán thì Win-Rate tối đa 60%. Đòi liên hệ ngoài Upwork thì trừ thêm điểm.
+Ràng buộc cứng: khách chưa verify thanh toán thì Win-Rate tối đa 60%. Đòi liên hệ ngoài Upwork thì trừ thêm điểm. Hơn 50% công nghệ trong JD nằm ngoài năng lực (Unity, PHP, mobile native…) thì tối đa 35% (SKIP).
 
 **Proposal:** mỗi góc độ có một bộ soạn câu theo giới hạn số từ (Angle 1: 130–170 từ, Angle 2 & 3: 180–260 từ). Câu bắt buộc và câu tùy chọn được ghép theo thứ tự ưu tiên. Nội dung lấy từ chính cách viết của khách trong JD, nỗi đau, bẫy kỹ thuật, module tái sử dụng và số đo thật của dự án.
 
@@ -84,8 +90,9 @@ src/
   engine/           # Logic lõi thuần (không phụ thuộc UI)
     jdAnalyzer.ts · winRateScorer.ts · portfolioMatcher.ts · proposalGenerator.ts
     proposalLinter.ts · architecture.ts · bidCalculator.ts · booleanBuilder.ts · crm.ts · llmBridge.ts
-  components/       # 6 phân hệ UI + bộ UI dùng chung
-  __tests__/        # 180 test Vitest
+    translator.ts (dịch JD + tóm ý VI) · jobScanner.ts (quét job hàng loạt)
+  components/       # 8 phân hệ UI + bộ UI dùng chung
+  __tests__/        # 211 test Vitest
 scripts/ui-check.cjs  # Kiểm thử giao diện thật bằng Playwright
 ```
 
@@ -95,6 +102,6 @@ scripts/ui-check.cjs  # Kiểm thử giao diện thật bằng Playwright
 
 ## ✅ Kết quả kiểm thử
 
-- `npm test`: **180/180 pass**. Gồm: chấm điểm từng ngách, khớp đúng dự án cho cả 8 Job, 3 góc độ × 3 giọng điệu × 8 Job đều đúng giới hạn số từ và không có câu mở đầu sáo rỗng, phí 10%, milestones = 100%, Boolean/URL, CRM JSON/CSV round-trip, LLM bridge.
+- `npm test`: **211/211 pass**. Gồm: chấm điểm từng ngách, khớp đúng dự án cho cả 8 Job, 3 góc độ × 3 giọng điệu × 8 Job đều đúng giới hạn số từ và không có câu mở đầu sáo rỗng, phí 10%, milestones = 100%, Boolean/URL, CRM JSON/CSV round-trip, LLM bridge.
 - `npm run build`: 0 lỗi, 0 cảnh báo TypeScript.
-- `scripts/ui-check.cjs`: 39/39 bước pass trên Chromium thật (mọi tab, Copy 1 chạm, lưu CRM, kéo-thả, export/import, giữ dữ liệu sau reload, mobile 390px không cuộn ngang), 0 lỗi console.
+- `scripts/ui-check.cjs`: 52/52 bước pass (gồm dịch Google thật + máy quét) trên Chromium thật (mọi tab, Copy 1 chạm, lưu CRM, kéo-thả, export/import, giữ dữ liệu sau reload, mobile 390px không cuộn ngang), 0 lỗi console.

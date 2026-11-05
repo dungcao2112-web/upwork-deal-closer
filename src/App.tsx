@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Calculator, KanbanSquare, PenLine, Radar, Save, ScanSearch, Search, Trophy } from 'lucide-react';
+import { Calculator, KanbanSquare, Languages, PenLine, Radar, Satellite, Save, ScanSearch, Search, Trophy } from 'lucide-react';
 import type { BidOptions, Deal, JobInput, PortfolioProject, ProposalAngleId, ProposalOptions } from './types';
 import { CORE_POSITIONING, PORTFOLIO_PROJECTS } from './data/portfolioData';
 import { SAMPLE_JOBS } from './data/sampleJobs';
@@ -13,14 +13,18 @@ import { ProposalStudio } from './components/ProposalStudio';
 import { BidCalculator } from './components/BidCalculator';
 import { NicheRadar } from './components/NicheRadar';
 import { PipelineCRM } from './components/PipelineCRM';
+import { JdTranslator } from './components/JdTranslator';
+import { JobScanner } from './components/JobScanner';
 import { scoreColor, useToast } from './components/ui';
 
 const TABS = [
   { id: 'analyzer', icon: ScanSearch, label: 'JD Analyzer & Win-Rate', vi: 'Phân tích Job' },
+  { id: 'translate', icon: Languages, label: 'Dịch JD tiếng Việt', vi: 'Hiểu JD trong 30 giây' },
   { id: 'portfolio', icon: Trophy, label: 'Portfolio & Loom Script', vi: 'Vũ khí chốt khách' },
   { id: 'proposal', icon: PenLine, label: '3-Angle Proposal Studio', vi: 'Soạn Proposal' },
   { id: 'bid', icon: Calculator, label: 'Bid & Milestones', vi: 'Tính giá thầu' },
   { id: 'radar', icon: Radar, label: 'Niche Radar & Boolean', vi: 'Radar săn việc' },
+  { id: 'scanner', icon: Satellite, label: 'Job Scanner hàng loạt', vi: 'Quét & xếp hạng job' },
   { id: 'pipeline', icon: KanbanSquare, label: 'Deal Pipeline CRM', vi: 'Phễu & thống kê' },
 ] as const;
 type TabId = (typeof TABS)[number]['id'];
@@ -182,6 +186,19 @@ export default function App() {
 
         <main className="flex-1 p-4" data-testid={`panel-${tab}`}>
           {tab === 'analyzer' && <JobAnalyzer job={job} setJob={setJob} full={full} goTo={(t) => setTab(t as TabId)} />}
+          {tab === 'translate' && <JdTranslator job={job} full={full} />}
+          {tab === 'scanner' && (
+            <JobScanner
+              projects={projects}
+              deals={deals}
+              setDeals={setDeals}
+              onAnalyze={(j) => {
+                setJob({ ...j });
+                setTab('analyzer');
+                notify('🔍 Đã nạp job vào Phân hệ 1');
+              }}
+            />
+          )}
           {tab === 'portfolio' && (
             <PortfolioMatcher
               matches={full.matches}

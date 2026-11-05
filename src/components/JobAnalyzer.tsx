@@ -50,6 +50,10 @@ export function JobAnalyzer({ job, setJob, full, goTo }: Props) {
           title="Dán Job Description"
           icon={<ClipboardPaste size={16} className="text-accent" />}
           actions={
+            <>
+            <button type="button" className="btn-ghost btn-xs" onClick={() => goTo('translate')} data-testid="goto-translate">
+              🇻🇳 Dịch JD
+            </button>
             <button
               type="button"
               className="btn-ghost btn-xs"
@@ -59,6 +63,7 @@ export function JobAnalyzer({ job, setJob, full, goTo }: Props) {
             >
               Xóa form
             </button>
+            </>
           }
         >
           <div className="space-y-3">

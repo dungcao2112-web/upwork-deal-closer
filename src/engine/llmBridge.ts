@@ -19,7 +19,7 @@ export function buildRewritePrompt(proposal: string, instruction: string, jobTit
   return `Job title: ${jobTitle}\n\nInstruction: ${instruction || 'Make it sharper and more persuasive while keeping the same length.'}\n\nProposal:\n${proposal}`;
 }
 
-export function buildLlmRequest(cfg: LlmConfig, userPrompt: string): LlmRequest {
+export function buildLlmRequest(cfg: LlmConfig, userPrompt: string, system: string = SYSTEM_PROMPT): LlmRequest {
   const model = cfg.model || LLM_DEFAULTS[cfg.provider].model;
   switch (cfg.provider) {
     case 'claude':
@@ -33,7 +33,7 @@ export function buildLlmRequest(cfg: LlmConfig, userPrompt: string): LlmRequest 
             'anthropic-version': '2023-06-01',
             'anthropic-dangerous-direct-browser-access': 'true',
           },
-          body: JSON.stringify({ model, max_tokens: 1500, system: SYSTEM_PROMPT, messages: [{ role: 'user', content: userPrompt }] }),
+          body: JSON.stringify({ model, max_tokens: 4000, system, messages: [{ role: 'user', content: userPrompt }] }),
         },
       };
     case 'openai':
@@ -42,7 +42,7 @@ export function buildLlmRequest(cfg: LlmConfig, userPrompt: string): LlmRequest 
         init: {
           method: 'POST',
           headers: { 'content-type': 'application/json', authorization: `Bearer ${cfg.apiKey}` },
-          body: JSON.stringify({ model, messages: [{ role: 'system', content: SYSTEM_PROMPT }, { role: 'user', content: userPrompt }] }),
+          body: JSON.stringify({ model, messages: [{ role: 'system', content: system }, { role: 'user', content: userPrompt }] }),
         },
       };
     case 'gemini':
@@ -51,7 +51,7 @@ export function buildLlmRequest(cfg: LlmConfig, userPrompt: string): LlmRequest 
         init: {
           method: 'POST',
           headers: { 'content-type': 'application/json', 'x-goog-api-key': cfg.apiKey },
-          body: JSON.stringify({ systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] }, contents: [{ role: 'user', parts: [{ text: userPrompt }] }] }),
+          body: JSON.stringify({ systemInstruction: { parts: [{ text: system }] }, contents: [{ role: 'user', parts: [{ text: userPrompt }] }] }),
         },
       };
     case 'ollama': {
@@ -61,7 +61,7 @@ export function buildLlmRequest(cfg: LlmConfig, userPrompt: string): LlmRequest 
         init: {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ model, system: SYSTEM_PROMPT, prompt: userPrompt, stream: false }),
+          body: JSON.stringify({ model, system, prompt: userPrompt, stream: false }),
         },
       };
     }
@@ -82,9 +82,9 @@ export function extractLlmText(provider: LlmProvider, data: unknown): string {
   }
 }
 
-export async function callLlm(cfg: LlmConfig, userPrompt: string, fetchImpl: typeof fetch = fetch): Promise<string> {
+export async function callLlm(cfg: LlmConfig, userPrompt: string, fetchImpl: typeof fetch = fetch, system: string = SYSTEM_PROMPT): Promise<string> {
   if (cfg.provider !== 'ollama' && !cfg.apiKey) throw new Error('Thiếu API key');
-  const req = buildLlmRequest(cfg, userPrompt);
+  const req = buildLlmRequest(cfg, userPrompt, system);
   const res = await fetchImpl(req.url, req.init);
   if (!res.ok) {
     const t = await res.text().catch(() => '');

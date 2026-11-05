@@ -45,3 +45,5 @@ export * from './booleanBuilder';
 export * from './crm';
 export * from './llmBridge';
 export * from './text';
+export * from './translator';
+export * from './jobScanner';

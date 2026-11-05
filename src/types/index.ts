@@ -352,3 +352,55 @@ export interface LlmRequest {
   url: string;
   init: { method: 'POST'; headers: Record<string, string>; body: string };
 }
+
+// ── Vietnamese translation ───────────────────────────────────
+export type TranslateEngine = 'google' | 'llm';
+
+export interface TranslatedBlock {
+  en: string;
+  vi: string;
+}
+
+export interface JobTranslation {
+  engine: TranslateEngine;
+  titleVi: string;
+  blocks: TranslatedBlock[];
+  createdAt: string;
+}
+
+export interface ViBriefItem {
+  vi: string;
+  en?: string;
+}
+
+export interface ViBriefSection {
+  id: string;
+  title: string;
+  items: ViBriefItem[];
+}
+
+export interface ViBrief {
+  headline: string;
+  sections: ViBriefSection[];
+}
+
+// ── Batch job scanner ────────────────────────────────────────
+export interface ScannedJob {
+  id: string; // stable hash of title + description
+  job: JobInput;
+  postedText?: string;
+  /** fields the parser could not find (defaults were used) */
+  missing: string[];
+}
+
+export interface ScanResult {
+  scanned: ScannedJob;
+  winRate: number;
+  verdict: Verdict;
+  niche: NicheId;
+  topProject: string;
+  topProjectScore: number;
+  bidLabel: string;
+  redFlags: number;
+  duplicateOf?: string; // CRM deal id
+}

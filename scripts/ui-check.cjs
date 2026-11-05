@@ -141,6 +141,50 @@ require('fs').mkdirSync(OUT, { recursive: true });
   await page.getByText('Job mẫu').first().click();
   ok((await page.getByTestId('current-job-title').innerText()).includes('ComfyUI'), 'global search loads job');
 
+  // ── Dịch JD tiếng Việt ─────────────────────────────
+  // Chromium in CI has no proxy config → serve the REAL Google response through Node's fetch.
+  await page.route('https://translate.googleapis.com/**', async (route) => {
+    const r = await fetch(route.request().url());
+    await route.fulfill({ status: r.status, body: await r.text(), headers: { 'content-type': 'application/json', 'access-control-allow-origin': '*' } });
+  });
+  await page.getByTestId('nav-analyzer').click();
+  await page.getByTestId('sample-jobs').getByText('1. Faceless TikTok').click();
+  await page.getByTestId('goto-translate').click();
+  ok((await page.getByTestId('brief-headline').innerText()).length > 20, 'offline VI brief headline');
+  ok((await page.getByTestId('vi-brief').innerText()).includes('phí 10%'), 'VI brief has money section');
+  await page.getByTestId('translation').waitFor({ timeout: 30000 });
+  const titleVi = await page.getByTestId('title-vi').innerText();
+  ok(titleVi.length > 10 && titleVi !== 'Build Automated Faceless TikTok/Reels Video Pipeline with Remotion & Whisper', 'title translated: ' + titleVi);
+  const trText = await page.getByTestId('translation').innerText();
+  ok(/pipeline/i.test(trText) && !/hình vịt|đường ống/.test(trText), 'glossary fixed jargon in real Google output');
+  await page.getByTestId('toggle-bilingual').click();
+  await page.getByRole('button', { name: 'Copy bản dịch' }).click();
+  ok((await page.evaluate(() => navigator.clipboard.readText())).includes(titleVi), 'translation copied');
+  await page.screenshot({ path: OUT + '/8-translate.png', fullPage: true });
+  await page.getByTestId('toggle-bilingual').click();
+
+  // ── Job Scanner ─────────────────────────────────────
+  await page.getByTestId('nav-scanner').click();
+  await page.getByTestId('scan-sample').click();
+  const rows = page.getByTestId('scan-row');
+  ok((await rows.count()) === 6, 'scanner parsed 6 sample jobs');
+  const firstWin = parseInt(await rows.first().innerText());
+  const lastWin = parseInt((await rows.last().innerText()).split('\n')[1]);
+  ok((await rows.first().innerText()).includes('MUST-BID'), 'best job on top is MUST-BID');
+  ok((await rows.last().innerText()).includes('SKIP'), 'worst job at bottom is SKIP');
+  await page.getByTestId('scan-hide-skip').click();
+  ok((await rows.count()) < 6, 'hide SKIP filter works (' + (await rows.count()) + ')');
+  await page.getByTestId('scan-hide-skip').click();
+  await rows.nth(1).getByTestId('scan-skip').click();
+  ok((await rows.count()) === 5, 'skip removes a row');
+  await rows.first().getByTestId('scan-save').click();
+  ok((await rows.first().innerText()).includes('Đã có trong CRM'), 'saved job flagged as already in CRM');
+  await page.screenshot({ path: OUT + '/9-scanner.png', fullPage: true });
+  const scanTitle = (await rows.first().innerText()).split('\n').find((l) => l.length > 30);
+  await rows.first().getByTestId('scan-analyze').click();
+  ok(await page.getByTestId('panel-analyzer').isVisible(), 'analyze button opens Phân hệ 1');
+  ok((await page.getByTestId('current-job-title').innerText()).length > 10, 'scanned job loaded: ' + (await page.getByTestId('current-job-title').innerText()));
+
   // mobile
   const m = await browser.newPage({ viewport: { width: 390, height: 844 } });
   await m.goto('http://localhost:5173/', { waitUntil: 'networkidle' });

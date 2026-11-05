@@ -88,13 +88,25 @@ src/
 - Analytics: tổng đơn gửi, Reply Rate %, Win Rate %, tổng Connects, tổng giá trị Pipeline.
 - Export/Import JSON & CSV, dữ liệu mẫu.
 
+### 7. 🇻🇳 Dịch JD tiếng Việt (bổ sung)
+- Tóm ý offline tức thì: Khách cần gì (động từ + công nghệ dịch nghĩa), Hình thức & ngân sách (bid gợi ý → Net VNĐ), Về khách, Nỗi đau, Công nghệ, Cảnh báo/bẫy, Kết luận.
+- Bản dịch đầy đủ song ngữ theo từng đoạn: Google Dịch miễn phí (`translate.googleapis.com`, không key) + bộ sửa thuật ngữ theo ngữ cảnh (pipeline, ducking, rate parity, extranet, agent…); hoặc qua LLM Bridge (giữ thuật ngữ tiếng Anh). Cache 30 bản gần nhất.
+- Fallback: mở translate.google.com.
+
+### 8. 🛰️ Job Scanner hàng loạt (bổ sung)
+- Đầu vào: nội dung copy từ trang kết quả tìm kiếm Upwork (tách theo dòng "Posted … ago"), nhiều JD cách nhau `---` (hỗ trợ nhãn `Title:` / `Budget:`), hoặc mảng JSON.
+- Trích: tiêu đề, Fixed/Hourly + ngân sách, Payment verified, tổng chi ($K/$M), quốc gia, proposals ("Less than 5", "10 to 15", "50+"), rating. Trường không có trên tile → giá trị trung tính + ghi chú (hire rate = 50).
+- Chấm điểm toàn bộ, xếp hạng theo Win-Rate, lọc trùng (tiêu đề + ngân sách + quốc gia) và đánh dấu job đã có trong CRM.
+- Không truy cập Upwork tự động (RSS đã bị tắt từ 20/08/2024; cào dữ liệu vi phạm điều khoản). Quét tự động hoàn toàn chỉ qua Upwork GraphQL API chính thức (cần API key).
+
 ## IV. Quy tắc chấm điểm (tóm tắt)
 - **Tech Stack Alignment** = tỷ trọng keyword trong JD mà Dũng đã làm thật (trọng số theo độ hiếm).
 - **Prototype Advantage** = điểm khớp của dự án tốt nhất (đã có app chạy thật để demo).
 - **Technical Moat** = trung bình độ khó (1–5) của keyword + số bẫy kỹ thuật phát hiện.
 - **Code Reuse** = độ phủ module có sẵn → hệ số tăng tốc 1.5x–5x.
 - **Client Health** = Payment Verified, tổng chi tiêu, hire rate, số proposals, ngân sách, red flags trong JD.
-- **Win-Rate** = trung bình có trọng số (25/20/15/15/25), kẹp 3–97%.
+- **Win-Rate** = trung bình có trọng số (25/20/15/15/25), kẹp 3–97%. Trần: chưa verify thanh toán ≤ 60%; >50% công nghệ ngoài năng lực ≤ 35%.
+- Độ khớp dự án & tỷ lệ tái sử dụng tính trên **toàn bộ** công nghệ trong JD (công nghệ ngoài năng lực kéo điểm xuống).
 
 ## V. Bid & Milestones
 - Phí Upwork cố định 10% (`UPWORK_FEE = 0.10`). Net = Gross × 0.9. VND theo tỷ giá cấu hình (mặc định 25,400).
