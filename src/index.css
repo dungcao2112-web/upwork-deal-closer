@@ -1,0 +1,64 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  @apply bg-studio-950 text-slate-200 antialiased;
+  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #2b3443 transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-thumb {
+  background: #2b3443;
+  border-radius: 8px;
+}
+
+@layer components {
+  .card {
+    @apply rounded-xl border border-studio-700 bg-studio-900/80 shadow-[0_1px_0_0_rgba(255,255,255,0.03)_inset];
+  }
+  .card-pad {
+    @apply p-4;
+  }
+  .label {
+    @apply mb-1 block text-[11px] font-semibold uppercase tracking-wider text-slate-400;
+  }
+  .input {
+    @apply w-full rounded-lg border border-studio-600 bg-studio-850 px-3 py-2 text-sm text-slate-100 outline-none transition placeholder:text-slate-500 focus:border-accent/70 focus:ring-2 focus:ring-accent/20;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply btn bg-accent text-studio-950 hover:bg-accent-soft;
+  }
+  .btn-ghost {
+    @apply btn border border-studio-600 bg-studio-850 text-slate-200 hover:border-studio-500 hover:bg-studio-800;
+  }
+  .btn-xs {
+    @apply px-2 py-1 text-xs;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs;
+  }
+  .mono {
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+  }
+}
